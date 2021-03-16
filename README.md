@@ -16,3 +16,9 @@ of scaling a release on play-store automatically.
 4. the script is configured to scale in 7d from Wednesday to Wednesday, tweak
    function `scale` to your needs and configure a cronjob or similar to trigger
    daily
+
+
+## usage of Docker image
+1. copy google-play-service.json to the project
+2. docker build -t playstore-autoscale .
+3. docker run -it --rm --name playstore-autoscale playstore-autoscale
