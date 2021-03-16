@@ -8,7 +8,6 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 import sys
 import json
-import datetime
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
 
@@ -22,26 +21,16 @@ from google.auth.transport.requests import AuthorizedSession
 
 PACKAGE_NAME = "your.app.package.name"
 DRY_RUN = False
-TRACK = 'alpha'
+TRACK = 'release'
 
 
-def weekday():
-    ''' return day of the week 0 (Monday) - 7 (Sunday)'''
-    return datetime.datetime.today().weekday()
-
-
-def scale():
-    ''' simple lookup table for scaling'''
-    scaling = [
-        0.2,   # monday 20%
-        0.5,   # tuesday
-        1.0,   # wednesday, (release will set to 1% with inital upload )
-        0.02,  # thursday
-        0.05,  # friday
-        0.10,  # saturday
-        0.10,  # sunday, let`s have a weekend please
-    ]
-    return scaling[weekday()]
+def scale(current_scale):
+    '''select next step in scaling scheme'''
+    scaling = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
+    i = 0
+    while scaling[i] <= current_scale:
+        i += 1
+    return scaling[i]
 
 
 API_V3 = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/%s"%PACKAGE_NAME
@@ -78,7 +67,7 @@ for track in tracks:
                 print(release["userFraction"])
             if release["status"] != "completed":
 #                print("user fraction is currently %f" % release["userFraction"])
-                scale = scale()
+                scale = scale(release["userFraction"])
                 print('--> scale to %d%%'%(scale*100))
                 if scale == 1.0:
                     release["status"] = "completed"
