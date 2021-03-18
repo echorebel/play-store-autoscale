@@ -10,18 +10,21 @@ import sys
 import json
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
+from slack_webhook import Slack
+from string import Template
 
-# TODO retain version codes of all APKs in the release. Must include version codes to retain from previous releases.
-# -> this is probably just embedded when pulling the track info
-#
-# full api docs: https://developers.google.com/android-publisher/api-ref/rest/
+# full google api docs: https://developers.google.com/android-publisher/api-ref/rest/
 
-# requires path to service user json
-# export GOOGLE_APPLICATION_CREDENTIALS="/path/to/google-play/service-account/google-play-service.json"
+# requires GOOGLE_APPLICATION_CREDENTIALS path to service json in environment, e.g.:
+# export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/google-play-service.json"
 
 PACKAGE_NAME = "your.app.package.name"
 DRY_RUN = False
-TRACK = 'release'
+TRACK = 'production'
+# define slack webhook url to enable notifications, empty string to disable
+SLACK_URL = ''
+# tweak message to your needs
+MSG_TEMPLATE = Template(':android: $version Live scaled to $percentage%')
 
 
 def scale(current_scale):
@@ -31,6 +34,12 @@ def scale(current_scale):
     while scaling[i] <= current_scale:
         i += 1
     return scaling[i]
+
+
+def post_notification(version, scale):
+    if SLACK_URL:
+        s = MSG_TEMPLATE.substitute(version=version, percentage=int(scale*100))
+        Slack(url=SLACK_URL).post(text=s)
 
 
 API_V3 = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/%s"%PACKAGE_NAME
@@ -61,14 +70,15 @@ for track in tracks:
         # print(json.dumps(track, indent = 4))
         for release in track["releases"]:
             print(release["name"],
-                str(release["versionCodes"]),
-                release["status"], end=" ")
+                  str(release["versionCodes"]),
+                  release["status"], end=" ")
             if "userFraction" in release:
                 print(release["userFraction"])
             if release["status"] != "completed":
-#                print("user fraction is currently %f" % release["userFraction"])
+                version = release["name"] + ' (' + str(max(release["versionCodes"])) + ")"
+                # print("user fraction is currently %f" % release["userFraction"])
                 scale = scale(release["userFraction"])
-                print('--> scale to %d%%'%(scale*100))
+                print('--> scale %s to %d%%'%(version,(scale*100)))
                 if scale == 1.0:
                     release["status"] = "completed"
                     release.pop('userFraction', None)
@@ -93,6 +103,10 @@ print("--- commit ---")
 if DRY_RUN is False:
     response = authed_session.post(API_V3 + '/edits/%s:commit'%edit_id)
     print(response)
+    if response.status_code == 200:
+        post_notification(version, scale)
+    else:
+        sys.exit(1)
 else:
     print("Dry run, don't commit, validate instead and clean up")
     print("--- validate ---")
@@ -102,3 +116,4 @@ else:
     print("--- clean up ---")
     response = authed_session.delete(API_V3 + '/edits/%s'%edit_id)
     print(response)
+
