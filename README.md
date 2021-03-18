@@ -28,9 +28,12 @@ You can tweak function `scale` to your needs.
 With a docker you can put your secret client json and slack webhook into one
 nice package and deploy it to your CI registry (never public).
 1. copy google-play-service.json to the project
-2. docker build -t playstore-autoscale .
-3. docker tag
-3. docker run -it --rm --name playstore-autoscale playstore-autoscale
+2. `docker build -t playstore-autoscale .`
+3. `docker tag playstore-autoscale
+   your.docker.registry/playstore-autoscale:0.1`
+4.`docker push your.docker.registry/playstore-autoscale:0.1`
+5. run on you CI system job or manually, e.g:
+`docker run -it --rm --name playstore-autoscale playstore-autoscale`
 
 
 ## Used libs
