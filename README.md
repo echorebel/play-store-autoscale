@@ -1,13 +1,13 @@
 # play-store-autoscale
 this script in combination with a cronjob or any other trigger from your CI
 system can take care of scaling a release on play-store automatically.
-Optionally it can also informs your colleagues in a slack channel.
+Optionally it can also inform your colleagues in a slack channel.
 
 ## Requirements
 - play store service account + json with credentials, see usage 1.
 - python 3.x
 - `pip` for installing required modules
-- install requirements via `pip install -r requirements.txt`
+- install requirements via `pip install -r requirements.txt` (where u execute)
 
 
 ## Usage
@@ -25,8 +25,8 @@ You can tweak function `scale` to your needs.
 
 
 ## Usage of Docker image
-With a docker you can put your secret client json and slack webhook into one
-nice package and deploy it to your CI registry (never public).
+With a docker you can put your secret client json, slack webhook and module
+requirements into one nice package and deploy it to your CI registry (never public).
 1. copy google-play-service.json to the project
 2. `docker build -t playstore-autoscale .`
 3. `docker tag playstore-autoscale
