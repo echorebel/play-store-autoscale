@@ -38,7 +38,7 @@ requirements into one nice package and deploy it to your CI registry (never publ
 
 ## Used libs
 - [google-auth](https://github.com/googleapis/google-auth-library-python)
-- [slack-webhook](ihttps://github.com/10mohi6/slack-webhook-python)
+- [slack-webhook](https://github.com/10mohi6/slack-webhook-python)
 
 
 ## Credit
